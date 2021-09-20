@@ -1,0 +1,22 @@
+cmd:  nload
+ver: v1
+desc: show single/all network device speed && total bytes sent.(查看各个网络设备的当前网络速率，总流量)
+util:
+  - name: all_devices_kb
+    desc: show all network devices with kb
+    args: -m -u k
+  - name: all_devices_mb
+    desc: show all network devices with mb
+    args: -m -u m
+  - name: eth0_kb
+    desc: show eth0 network devices with kb
+    args: devices eth0  -u k
+  - name: eth0_mb
+    desc: show eth0 network devices with mb
+    args: devices eth0  -u m
+install: 
+  - name: centos
+    install_cmd: yum install -y epel-release && yum install -y nload
+
+docs:
+  - https://segmentfault.com/a/1190000022275523
