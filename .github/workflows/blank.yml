@@ -37,8 +37,7 @@ jobs:
       - name: Go build toolset
         run: go build -o toolset 
       
-      - name: Release
-        - uses: ncipollo/release-action@v1
+      - uses: ncipollo/release-action@v1
         with:
           artifacts: "toolset"
           tag_name: "v0.01"
