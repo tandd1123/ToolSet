@@ -59,12 +59,10 @@ func iterEmbedFsFiles(fs *embed.FS, dir string, filesMap map[string]os.FileInfo)
 	}
 	for _, entry := range entrys {
 		if entry.IsDir() {
-			// fmt.Printf("dir: %v\n", entry.Name())
 			iterEmbedFsFiles(fs, dir+"/"+entry.Name(), filesMap)
 			continue
 		}
 		filesMap[dir+"/"+entry.Name()], _ = entry.Info()
-		// fmt.Printf("obj: %v\n", entry.Name())
 	}
 }
 
@@ -105,7 +103,6 @@ func ParseCmd(fs embed.FS, rootCmd *cobra.Command) error {
 
 	for _, file := range files {
 		// fmt.Printf("file: %+v", file)
-		//初始化 yaml 文件路径上的 dir 路径信息
 		if err := addDirCommand(rootCmd, file.dirs); err != nil {
 			panic(fmt.Errorf("add dir command err: %v", err))
 		}
@@ -114,10 +111,13 @@ func ParseCmd(fs embed.FS, rootCmd *cobra.Command) error {
 			panic(fmt.Errorf("add dir command err: %v", err))
 		}
 	}
+	return nil
+}
+
+func OutputCommands(rootCmd *cobra.Command) {
 	tree := treeprint.New()
 	outputCommand(tree, rootCmd)
 	fmt.Println(tree.String())
-	return nil
 }
 
 func outputCommand(tree treeprint.Tree, cmd *cobra.Command) {
@@ -140,13 +140,13 @@ func outputCommand(tree treeprint.Tree, cmd *cobra.Command) {
 	cmdType, ok := getAnnotionsCmdType(cmd)
 	if ok && cmdType == ANNOTATION_CMD_TYPE_BIN {
 		name = cmd.Use
-		cmdHelp = cmd.Name() + " util: " + getCommandPath(cmd) + " help"
+		cmdHelp = cmd.Name() + " help: " + getCommandPath(cmd) + " help"
 	}
 
 	branch := tree
-	// if name != ROOT_CMD_NAME_TOOLSET {
-	branch = tree.AddBranch(name)
-	// }
+	if name != ROOT_CMD_NAME_TOOLSET {
+		branch = tree.AddBranch(name)
+	}
 	if len(cmdHelp) != 0 {
 		tree.AddNode(cmdHelp)
 	}
@@ -247,7 +247,7 @@ func newYamlCommand(cmdv1 *CmdV1, parentCmd *cobra.Command) *cobra.Command {
 	buf.WriteString("utils:\n")
 	for idx := range cmdv1.Util {
 		util := cmdv1.Util[idx]
-		buf.WriteString(fmt.Sprintf("%v. %v: %v [%v]\n", idx, util.Name, util.Desc, getCommandPath(parentCmd)+" "+cmdv1.Cmd+" "+util.Name))
+		buf.WriteString(fmt.Sprintf("%v. %v [%v], path: %v\n", idx, util.Name, util.Desc, getCommandPath(parentCmd)+" "+cmdv1.Cmd+" "+util.Name))
 	}
 
 	buf.WriteString("\ninstall:\n")
