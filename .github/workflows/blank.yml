@@ -36,11 +36,20 @@ jobs:
       # build util 
       - name: Go build toolset
         run: go build -o toolset 
+
+      # delete special tag
+      - name: Delete the tag
+        uses: julb/action-manage-tag@v1
+        with:
+          name: v0.0.1
+          state: absent
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}      
       
       - uses: ncipollo/release-action@v1
         with:
           artifacts: "toolset"
-          tag: "v0.0.2"
+          tag: v0.0.1
           token: ${{ secrets.TOKEN }}
 
       # - uses: actions/upload-artifact@v2
