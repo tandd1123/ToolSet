@@ -1,0 +1,23 @@
+cmd:  ss
+ver: v1
+desc: show socket statistics(查看各个进程的连接信息, netstat 替代品)
+util:
+  - name: listen_socket_process
+    desc: show listening socket && process info
+    args:  -tlps
+  - name: all_socket_process
+    desc: show all socket && process info
+    args: -taps
+  - name: dst_socket_process
+    desc: show assigned dst ip socket process info
+    args: dst 192.168.1.1:1001
+  - name: src_socket_process
+    desc: show assigned src ip socket process info
+    args: src 192.168.1.1:1001
+install: 
+  - name: centos
+    install_cmd: yum install -y iproute
+
+docs:
+  - https://segmentfault.com/a/1190000022275523
+  - https://www.cnblogs.com/peida/archive/2013/03/11/2953420.html
