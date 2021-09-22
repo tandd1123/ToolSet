@@ -38,12 +38,12 @@ jobs:
         run: go build -o toolset 
       
       - name: Release
-        uses: softprops/action-gh-release@v1
+      - uses: ncipollo/release-action@v1
         with:
           artifacts: "toolset"
-          tag: "v0.01"
+          tag_name: "v0.01"
           token: ${{ secrets.TOKEN }}
-                  
+
       # - uses: actions/upload-artifact@v2
       #   with:
       #     name: my-artifact
