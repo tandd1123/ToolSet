@@ -40,7 +40,7 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
           artifacts: "toolset"
-          tag: "v0.01"
+          tag: "v0.0.2"
           token: ${{ secrets.TOKEN }}
 
       # - uses: actions/upload-artifact@v2
