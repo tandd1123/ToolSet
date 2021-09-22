@@ -22,8 +22,7 @@ const (
 )
 
 type CommandMap struct {
-	cmdMap       map[string]*cobra.Command
-	rootCmdPaths []string
+	cmdMap map[string]*cobra.Command
 }
 
 type CmdConfYamlFile struct {
@@ -60,23 +59,18 @@ func iterEmbedFsFiles(fs *embed.FS, dir string, filesMap map[string]os.FileInfo)
 	}
 	for _, entry := range entrys {
 		if entry.IsDir() {
-			fmt.Printf("dir: %v\n", entry.Name())
+			// fmt.Printf("dir: %v\n", entry.Name())
 			iterEmbedFsFiles(fs, dir+"/"+entry.Name(), filesMap)
 			continue
 		}
 		filesMap[dir+"/"+entry.Name()], _ = entry.Info()
-		fmt.Printf("obj: %v\n", entry.Name())
+		// fmt.Printf("obj: %v\n", entry.Name())
 	}
 }
 
 func ParseCmd(fs embed.FS, rootCmd *cobra.Command) error {
 	var files []*CmdConfYamlFile
 	fs.ReadDir("conf")
-
-	// if err := execShellCmd(fmt.Sprintf("tree %v", CONF_ROOT_DIR)); err != nil {
-	// 	panic("tree conf err")
-	// }
-	// root := "/some/folder/to/scan"
 	filesMap := make(map[string]os.FileInfo)
 	iterEmbedFsFiles(&fs, "cmd/conf", filesMap)
 	for path, info := range filesMap {
@@ -108,15 +102,6 @@ func ParseCmd(fs embed.FS, rootCmd *cobra.Command) error {
 			files = append(files, file)
 		}
 	}
-
-	// err := filepath.Walk(CONF_ROOT_DIR, func(path string, info os.FileInfo, err error) error {
-
-	// 	}
-	// 	return nil
-	// })
-	// if err != nil {
-	// 	panic(err)
-	// }
 
 	for _, file := range files {
 		// fmt.Printf("file: %+v", file)
@@ -155,13 +140,13 @@ func outputCommand(tree treeprint.Tree, cmd *cobra.Command) {
 	cmdType, ok := getAnnotionsCmdType(cmd)
 	if ok && cmdType == ANNOTATION_CMD_TYPE_BIN {
 		name = cmd.Use
-		cmdHelp = getCommandHelp(cmd)
+		cmdHelp = cmd.Name() + " util: " + getCommandPath(cmd) + " help"
 	}
 
 	branch := tree
-	if name != ROOT_CMD_NAME_TOOLSET {
-		branch = tree.AddBranch(name)
-	}
+	// if name != ROOT_CMD_NAME_TOOLSET {
+	branch = tree.AddBranch(name)
+	// }
 	if len(cmdHelp) != 0 {
 		tree.AddNode(cmdHelp)
 	}
@@ -170,9 +155,9 @@ func outputCommand(tree treeprint.Tree, cmd *cobra.Command) {
 	}
 }
 
-func getCommandHelp(cmd *cobra.Command) string {
+func getCommandPath(cmd *cobra.Command) string {
 	var arr []string
-	tmpCmd := cmd
+	// tmpCmd := cmd
 	for i := 0; i < 10; i++ {
 		if cmd.Name() != ROOT_CMD_NAME_TOOLSET {
 			arr = append([]string{cmd.Name()}, arr...)
@@ -182,8 +167,8 @@ func getCommandHelp(cmd *cobra.Command) string {
 		}
 		cmd = cmd.Parent()
 	}
-	arr = append(arr, "help")
-	arr = append([]string{tmpCmd.Name(), "util:", os.Args[0]}, arr...)
+	// arr = append(arr, "help")
+	arr = append([]string{os.Args[0]}, arr...)
 	return strings.Join(arr, " ")
 }
 
@@ -233,7 +218,7 @@ func addYamlCommand(dirs []string, content string) error {
 	if err := yaml.Unmarshal([]byte(content), &cmdv1); err != nil {
 		panic(fmt.Errorf("cmd v1 yaml path: %v parse err: %v", strings.Join(dirs, "/"), err))
 	}
-	cmd := newYamlCommand(cmdv1)
+	cmd := newYamlCommand(cmdv1, parentCmd)
 	if !containSubCommand(parentCmd, cmd) {
 		parentCmd.AddCommand(cmd)
 		parentCmd.SuggestFor = append(parentCmd.SuggestFor, cmd.Name())
@@ -256,18 +241,22 @@ func newDirCommand(path, dir string) *cobra.Command {
 
 }
 
-func newYamlCommand(cmdv1 *CmdV1) *cobra.Command {
-
+func newYamlCommand(cmdv1 *CmdV1, parentCmd *cobra.Command) *cobra.Command {
 	//1. 生成 install 和 doc 相关的命令信息
 	var buf strings.Builder
-	buf.WriteString("install:\n")
+	buf.WriteString("utils:\n")
+	for idx := range cmdv1.Util {
+		util := cmdv1.Util[idx]
+		buf.WriteString(fmt.Sprintf("%v. %v: %v [%v]\n", idx, util.Name, util.Desc, getCommandPath(parentCmd)+" "+cmdv1.Cmd+" "+util.Name))
+	}
+
+	buf.WriteString("\ninstall:\n")
 	for idx := range cmdv1.Install {
 		install := cmdv1.Install[idx]
 		buf.WriteString(fmt.Sprintf("os: %v, install cmd: %v\n", install.Name, install.InstallCmd))
 	}
-	buf.WriteString("\n")
 
-	buf.WriteString("docs:\n")
+	buf.WriteString("\ndocs:\n")
 	for idx := range cmdv1.Docs {
 		doc := cmdv1.Docs[idx]
 		buf.WriteString(fmt.Sprintf("idx: %v, doc: %v\n", idx, doc))
